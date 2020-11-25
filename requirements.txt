@@ -1,0 +1,6 @@
+gunicorn
+aries-basic-controller
+colored
+qrcode
+requests
+bs4
