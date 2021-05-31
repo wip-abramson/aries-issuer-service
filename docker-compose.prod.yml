@@ -1,14 +1,9 @@
 version: "3"
 services:
-  ngrok-issuer:
-    image: wernight/ngrok
-    command: ngrok http issuer-agent:3020 --log stdout
-    networks:
-      - issuer
   issuer-agent:
     build:
       context: .
-      dockerfile: dockerfiles/agent/Dockerfile
+      dockerfile: dockerfiles/agent/Dockerfile.prod
     env_file:
       - .env
     ports:

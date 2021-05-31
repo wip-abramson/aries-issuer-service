@@ -1,6 +1,7 @@
 gunicorn
-aries-basic-controller
+aries_cloudcontroller>=0.2.6
 colored
 qrcode
 requests
 bs4
+nest_asyncio

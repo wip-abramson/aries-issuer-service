@@ -65,6 +65,12 @@ EOF
 DEFAULT_CONTAINERS="ngrok-issuer issuer-agent issuer-logic"
 
 # -----------------------------------------------------------------------------------------------------------------
+# Production Settings:
+# -----------------------------------------------------------------------------------------------------------------
+PRODUCTION_CONTAINERS="issuer-agent issuer-logic"
+
+
+# -----------------------------------------------------------------------------------------------------------------
 # Functions:
 # -----------------------------------------------------------------------------------------------------------------
 function echoRed() {
@@ -111,36 +117,6 @@ configureEnvironment() {
     esac
   done
 
-  # global
-  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:controller}"
-  export GENESIS_URL="https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis"
-  export WALLET_TYPE="indy"
-
-  # VERIFIER-agent
-  # export VERIFIER_AGENT_NAME="VERIFIER"
-  # export VERIFIER_ADMIN_PORT=8051
-  # export VERIFIER_HTTP_PORT=8050
-  # export VERIFIER_WEBHOOK_PORT=8052
-  # export VERIFIER_WEBHOOK_URL=${VERIFIER_WEBHOOK_URL:-http://$DOCKERHOST:$VERIFIER_WEBHOOK_PORT}
-  # export VERIFIER_AGENT_ENDPOINT=${VERIFIER_AGENT_ENDPOINT:-http://$DOCKERHOST:$VERIFIER_HTTP_PORT}
-  # export VERIFIER_WALLET_SEED="VAGENT_seed_00000000000000000000"
-  # export VERIFIER_WALLET_KEY="VERIFIER_key_00000000000000000000000"
-  # export VERIFIER_WALLET_NAME="VERIFIER Wallet"
-  # export VERIFIER_JUPYTER_PORT="8889"
-  # export VERIFIER_ADMIN_SECURE="true"
-
-  # ISSUER-agent
-  export ISSUER_AGENT_NAME="ISSUER"
-  export ISSUER_ADMIN_PORT=8011
-  export ISSUER_HTTP_PORT=8010
-  export ISSUER_WEBHOOK_PORT=8012
-  export ISSUER_WEBHOOK_URL=${ISSUER_WEBHOOK_URL:-http://$DOCKERHOST:$ISSUER_WEBHOOK_PORT}
-  export ISSUER_AGENT_ENDPOINT=${ISSUER_AGENT_ENDPOINT:-http://$DOCKERHOST:$ISSUER_HTTP_PORT}
-  export ISSUER_WALLET_SEED="IAGENT_seed_00000000000000000000"
-  export ISSUER_WALLET_KEY="ISSUER_key_00000000000000000000000"
-  export ISSUER_WALLET_NAME="ISSUER Wallet"
-  export ISSUER_ADMIN_SECURE="true"
-
 
 }
 
@@ -181,6 +157,31 @@ getStartupParams() {
 
   if [ -z "$CONTAINERS" ]; then
     CONTAINERS="$DEFAULT_CONTAINERS"
+  fi
+
+  echo ${ARGS} ${CONTAINERS}
+}
+
+getProductionParams() {
+  CONTAINERS=""
+  ARGS=""
+
+  for arg in $@; do
+    case "$arg" in
+    *=*)
+      # Skip it
+      ;;
+    -*)
+      ARGS+=" $arg"
+      ;;
+    *)
+      CONTAINERS+=" $arg"
+      ;;
+    esac
+  done
+
+  if [ -z "$CONTAINERS" ]; then
+    CONTAINERS="$PRODUCTION_CONTAINERS"
   fi
 
   echo ${ARGS} ${CONTAINERS}
@@ -267,6 +268,19 @@ restart)
   configureEnvironment "$@"
   docker-compose stop ${_startupParams}
   docker-compose up -d --build --remove-orphans ${_startupParams}
+  ;;
+production)
+  echoYellow "Starting up... This can take a couple of minutes."
+  _startupParams=$(getProductionParams $@)
+  configureEnvironment "$@"
+  docker-compose\
+  -f docker-compose.prod.yml \
+  --log-level ERROR up \
+  --build --remove-orphans \
+  -d ${_startupParams}
+  docker-compose \
+  --log-level ERROR logs \
+  -f
   ;;
 logs)
   configureEnvironment "$@"
