@@ -24,7 +24,7 @@ root.addHandler(handler)
 
 
 schema_id = 'W4t2Pa4XR1qBDvwhVcn4CY:2:Aries ACA ACC Jupyter Playground Demo Participation:0.0.1'
-cred_def_id = None
+cred_def_id = 'QXrB6dzq3igg6jjQgcLChn:3:CL:216849:default'
 
 api_key = os.getenv("ACAPY_ADMIN_API_KEY")
 admin_url = os.getenv("ADMIN_URL")
