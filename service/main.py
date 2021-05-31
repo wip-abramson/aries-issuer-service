@@ -153,10 +153,10 @@ async def initialise():
         cred_def_id = response["credential_definition_id"]
         logging.info(f"Credential Definition {cred_def_id} for schema {schema_id}")
 
-        # Create Invitation
-        invite = await agent_controller.connections.create_invitation(multi_use="true")
-        logging.info("Multi Use Connection Invitation")
-        logging.info(invite["invitation"])
+    # Create Invitation
+    invite = await agent_controller.connections.create_invitation(multi_use="true")
+    logging.info("Multi Use Connection Invitation")
+    logging.info(invite["invitation"])
 
 
 async def write_public_did():
