@@ -20,11 +20,11 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 root.addHandler(handler)
 
+multi_use_invititation_key = None
 
 
-
-schema_id = 'W4t2Pa4XR1qBDvwhVcn4CY:2:Aries ACA ACC Jupyter Playground Demo Participation:0.0.1'
-cred_def_id = 'QXrB6dzq3igg6jjQgcLChn:3:CL:216849:default'
+schema_id='84j4TQBmap9C1C7qXAs6M5:2:Aries Jupyter Playground Demo Participation:0.0.1'
+cred_def_id = 'AY54XqqrW4cXh4wW5AwhUJ:3:CL:6734:default'
 
 api_key = os.getenv("ACAPY_ADMIN_API_KEY")
 admin_url = os.getenv("ADMIN_URL")
@@ -59,7 +59,7 @@ def cred_handler(payload):
                     description = attribute["value"]
                     description += "\n Thanks for attending!"
 
-            event_name = "Hyperledger Global Forum 2021"
+            event_name = "Internet Identity Workshop Oct 2021"
             issue_date = date.today().isoformat()
             credential_attributes = [
                 {"name": "Event Name", "value": event_name},
@@ -109,6 +109,30 @@ def connections_handler(payload):
 
     if state == "active":
         # Your business logic
+        invitation_key = payload["invitation_key"]
+        their_lablel = payload["their_label"]
+        print(invitation_key)
+        if invitation_key == multi_use_invititation_key:
+            event_name = "Internet Identity Workshop Oct 2021"
+            issue_date = date.today().isoformat()
+            credential_attributes = [
+                {"name": "Event Name", "value": event_name},
+                {"name": "Participant", "value": their_lablel},
+                {"name": "Description",
+                 "value": "Thank you for attending the Aries Jupyter Playground demo at HGF 2021"},
+                {"name": "Date", "value": issue_date}
+            ]
+
+            # Do you want the ACA-Py instance to trace it's processes (for testing/timing analysis)
+            trace = False
+            comment = ""
+            # Remove credential record after issued?
+            auto_remove = True
+
+            # Change <schema_id> and <cred_def_id> to correct pair. Cred_def_id must identify a definition to which your agent has corresponding private issuing key.
+            loop.run_until_complete(
+                agent_controller.issuer.send_credential(connection_id, schema_id, cred_def_id, credential_attributes,
+                                                        comment, auto_remove, trace))
         print("Connection ID: {0} is now active.".format(connection_id))
 
 
@@ -154,9 +178,11 @@ async def initialise():
         logging.info(f"Credential Definition {cred_def_id} for schema {schema_id}")
 
     # Create Invitation
-    invite = await agent_controller.connections.create_invitation(multi_use="true")
+    multi_use_invite_response = await agent_controller.connections.create_invitation(multi_use="true")
+    global multi_use_invititation_key
+    multi_use_invititation_key = multi_use_invite_response["invitation"]["recipientKeys"][0]
     logging.info("Multi Use Connection Invitation")
-    logging.info(invite["invitation"])
+    logging.info(multi_use_invite_response["invitation"])
 
 
 async def write_public_did():
@@ -170,7 +196,7 @@ async def write_public_did():
 
     url = 'https://selfserve.sovrin.org/nym'
 
-    payload = {"network": "stagingnet", "did": did_object["did"], "verkey": did_object["verkey"], "paymentaddr": ""}
+    payload = {"network": "buildernet", "did": did_object["did"], "verkey": did_object["verkey"], "paymentaddr": ""}
 
     # Adding empty header as parameters are being sent in payload
     headers = {}

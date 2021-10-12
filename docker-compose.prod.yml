@@ -1,5 +1,18 @@
 version: "3"
 services:
+  issuer-wallet-db:
+    image: postgres:11
+    container_name: issuer-wallet-db
+    command: postgres -c listen_addresses='*'
+    # env file defines
+    env_file:
+      - .env
+    # This creates the data base tables if not present. See resources/init.sql #
+    volumes:
+      - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - issuer
+    tty: true
   issuer-agent:
     build:
       context: .
@@ -13,7 +26,7 @@ services:
       - issuer
     volumes:
       - issuer-agent:/home/indy/.indy_client/wallet
-  issuer-logic:
+  issuer-business-logic:
     build:
       context: .
       dockerfile: dockerfiles/service/Dockerfile.service
